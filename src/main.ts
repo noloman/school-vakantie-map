@@ -10,7 +10,13 @@ console.log('src/main.ts loaded (modular)');
 window.addEventListener('error', (ev) => { console.error('Uncaught error:', ev.error || ev.message, ev); });
 window.addEventListener('unhandledrejection', (ev) => { console.error('Unhandled promise rejection:', ev.reason); });
 
-const API_URL = '/api/v1/infotypes/schoolholidays?output=json';
+// Try the local dev proxy first (works during `vite` dev), then fall back to the
+// public Rijksoverheid OpenData API for production (GitHub Pages). This ensures
+// the site still renders when the `/api` proxy is not available.
+const API_URLS = [
+  '/api/v1/infotypes/schoolholidays?output=json',
+  'https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json',
+];
 const provinces: FeatureCollection = JSON.parse(regionsGeoText) as unknown as FeatureCollection;
 
 const mapEl = document.getElementById('map');
@@ -45,8 +51,23 @@ let debugControlInstance: L.Control | null = null;
 
 async function loadSchoolHolidays(): Promise<void> {
   try {
-    const res = await fetch(API_URL);
-    const data = await res.json();
+    // Try configured URLs in order until we get JSON data.
+    let data: any = null;
+    for (const url of API_URLS) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.warn('Fetch to', url, 'failed with', res.status);
+          continue;
+        }
+        data = await res.json();
+        if (data) break;
+      } catch (e) {
+        console.warn('Error fetching', url, e);
+        continue;
+      }
+    }
+    if (!data) return console.warn('No school holidays data returned from any configured source');
     if (!Array.isArray(data) || data.length === 0) return console.warn('No school holidays data returned');
 
     const latest = (data as any[]).reduce((a, b) => new Date(a.lastmodified) > new Date(b.lastmodified) ? a : b);
@@ -62,7 +83,9 @@ async function loadSchoolHolidays(): Promise<void> {
 
     if (legendControlInstance) { try { legendControlInstance.remove(); } catch (e) { /* ignore */ } }
     legendControlInstance = createLegendControl(typesPresent, state, () => { render(); updateSidebarList(); }) as any;
-    legendControlInstance.addTo(map);
+    if (legendControlInstance && typeof (legendControlInstance as any).addTo === 'function') {
+      (legendControlInstance as any).addTo(map);
+    }
 
     render();
 
