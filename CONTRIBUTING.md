@@ -230,7 +230,14 @@ The project uses GitHub Actions for automated deployment to GitHub Pages:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the same license as the project.
+This project is licensed under the MIT License — see the `LICENSE` file in this repository for the full text.
+
+By contributing, you agree that your contributions will be licensed under the MIT License. Unless you and the
+maintainers agree otherwise in writing, contributions submitted to this repository are licensed under the same
+MIT terms as the project.
+
+If you have questions about the licensing of your contribution or require a Contributor License Agreement (CLA)
+or Developer Certificate of Origin (DCO), please contact the project maintainers before submitting your pull request.
 
 ---
 
