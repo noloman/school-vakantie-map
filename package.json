@@ -1,0 +1,25 @@
+{
+  "name": "school-holidays-map",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/geojson": "^7946.0.8",
+    "@types/leaflet": "^1.7.10",
+    "autoprefixer": "^10.0.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.2.2",
+    "vite": "^7.2.2"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "proj4": "^2.20.0"
+  }
+}

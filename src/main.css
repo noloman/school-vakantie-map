@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Legend control styling */
+.vacation-legend {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-size: 13px;
+  color: #111827;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Sidebar */
+.province-sidebar {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  font-size: 13px;
+  color: #111827;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.province-sidebar .header {
+  font-weight: 700;
+  padding-bottom: 6px;
+}
+
+.province-sidebar .controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.province-sidebar .list-item {
+  padding: 6px 4px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.province-sidebar .list-item .meta {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.province-sidebar .list-item.active {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.province-sidebar .details {
+  margin-top: 2px;
+  padding: 4px 8px;
+  background: #f9fafb;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.province-sidebar .details .vac-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.province-sidebar .details .vac-row .vac-type {
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.province-sidebar .details .vac-row .vac-dates {
+  color: #6b7280;
+}
+
+.province-sidebar .list-item[aria-expanded="true"] {
+  background: #e0e7ff;
+}
+
+/* Timeline slider */
+.timeline-slider {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* Colorblind palette toggle */
+.palette-toggle {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+}
+
+.palette-toggle.active {
+  background: #c7d2fe;
+  border-color: #6366f1;
+}
+
+/* Pattern/hatching fallback for accessibility */
+.pattern-fill {
+  background-image: repeating-linear-gradient(45deg, #e0e7ff 0px, #e0e7ff 4px, #fff 4px, #fff 8px);
+}
+
+/* Debug panel */
+.debug-panel {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 11px;
+  max-width: 320px;
+  white-space: pre-wrap;
+}
