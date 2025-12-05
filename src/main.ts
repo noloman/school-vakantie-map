@@ -34,8 +34,9 @@ async function loadProvinces(): Promise<FeatureCollection> {
     return JSON.parse(regionsGeoText) as FeatureCollection;
   }
 
-  const base = (import.meta as any).env?.BASE_URL || '/';
-  const geoUrl = new URL('geo/regions.geojson', base).toString();
+  const rawBase = (import.meta as any).env?.BASE_URL || '/';
+  const normalizedBase = rawBase.startsWith('/') ? rawBase : `/${rawBase}`;
+  const geoUrl = `${window.location.origin}${normalizedBase.replace(/\/$/, '')}/geo/regions.geojson`;
   const res = await fetch(geoUrl);
   if (!res.ok) {
     console.error('Failed to fetch regions.geojson', res.status, res.statusText, 'url:', geoUrl);
@@ -255,4 +256,6 @@ async function main() {
 
 }
 
-main();
+main().catch((err) => {
+  console.error('Fatal error during app startup', err);
+});
