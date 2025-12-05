@@ -23,7 +23,15 @@ window.addEventListener('unhandledrejection', (ev) => { console.error('Unhandled
 // Try the local dev proxy first (works during `vite` dev), then fall back to the
 // public Rijksoverheid OpenData API for production (GitHub Pages). This ensures
 // the site still renders when the `/api` proxy is not available.
+const getBaseUrl = (): string => {
+  const raw = (import.meta as any).env?.BASE_URL || '/';
+  return raw.startsWith('/') ? raw : `/${raw}`;
+};
+
+const baseUrl = getBaseUrl();
+const localApiUrl = `${window.location.origin}${baseUrl.replace(/\/$/, '')}/api/schoolholidays.json`;
 const API_URLS = [
+  localApiUrl,
   '/api/v1/infotypes/schoolholidays?output=json',
   'https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json',
 ];
@@ -34,9 +42,7 @@ async function loadProvinces(): Promise<FeatureCollection> {
     return JSON.parse(regionsGeoText) as FeatureCollection;
   }
 
-  const rawBase = (import.meta as any).env?.BASE_URL || '/';
-  const normalizedBase = rawBase.startsWith('/') ? rawBase : `/${rawBase}`;
-  const geoUrl = `${window.location.origin}${normalizedBase.replace(/\/$/, '')}/geo/regions.geojson`;
+  const geoUrl = `${window.location.origin}${baseUrl.replace(/\/$/, '')}/geo/regions.geojson`;
   console.info('Fetching provinces GeoJSON from', geoUrl);
   const res = await fetch(geoUrl);
   if (!res.ok) {

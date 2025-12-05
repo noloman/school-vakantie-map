@@ -28,6 +28,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Fetch school holidays data
+        run: |
+          mkdir -p public/api
+          curl -fsSL "https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json" -o public/api/schoolholidays.json || echo "{}" > public/api/schoolholidays.json
+
       - name: Install dependencies
         run: npm ci
 
