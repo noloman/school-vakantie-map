@@ -37,20 +37,39 @@ async function loadProvinces(): Promise<FeatureCollection> {
   const rawBase = (import.meta as any).env?.BASE_URL || '/';
   const normalizedBase = rawBase.startsWith('/') ? rawBase : `/${rawBase}`;
   const geoUrl = `${window.location.origin}${normalizedBase.replace(/\/$/, '')}/geo/regions.geojson`;
+  console.info('Fetching provinces GeoJSON from', geoUrl);
   const res = await fetch(geoUrl);
   if (!res.ok) {
     console.error('Failed to fetch regions.geojson', res.status, res.statusText, 'url:', geoUrl);
-    throw new Error('Failed to fetch regions.geojson');
+    throw new Error(`Failed to fetch regions.geojson: ${res.status} ${res.statusText}`);
   }
   return await res.json();
 }
 
 async function main() {
-  provinces = await loadProvinces();
   const mapEl = document.getElementById('map');
   if (!mapEl) console.error('Map container element `#map` not found in DOM');
   const map = mapEl ? L.map('map').setView([52.2, 5.3], 7) : (null as unknown as L.Map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+
+  try {
+    provinces = await loadProvinces();
+  } catch (err) {
+    console.error('Fatal: could not load provinces GeoJSON', err);
+    if (mapEl) {
+      const alert = document.createElement('div');
+      alert.style.position = 'absolute';
+      alert.style.top = '12px';
+      alert.style.right = '12px';
+      alert.style.background = 'white';
+      alert.style.padding = '10px';
+      alert.style.border = '1px solid #ccc';
+      alert.style.zIndex = '9999';
+      alert.textContent = 'Error loading regions data. Check console logs.';
+      mapEl.appendChild(alert);
+    }
+    return; // stop startup; map tiles still render
+  }
 
   try {
     if (map && provinces && provinces.features && provinces.features.length) {
