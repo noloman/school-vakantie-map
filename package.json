@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && mkdir -p dist/geo && cp src/geo/regions.geojson dist/geo/regions.geojson",
     "preview": "vite preview"
   },
   "devDependencies": {

@@ -1,7 +1,17 @@
+// TypeScript: declare Vite env typing for import.meta.env
+declare global {
+  interface ImportMeta {
+    env: {
+      DEV: boolean;
+      PROD: boolean;
+      [key: string]: any;
+    };
+  }
+}
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './main.css';
-import regionsGeoText from './geo/regions.geojson?raw';
+let provinces: FeatureCollection | null = null;
 import type { FeatureCollection } from 'geojson';
 import { parseProvinceVacations, normalize, MapState } from './utils';
 import { createLegendControl, renderProvinceLayers } from './mapRenderer';
@@ -17,39 +27,52 @@ const API_URLS = [
   '/api/v1/infotypes/schoolholidays?output=json',
   'https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json',
 ];
-const provinces: FeatureCollection = JSON.parse(regionsGeoText) as unknown as FeatureCollection;
-
-const mapEl = document.getElementById('map');
-if (!mapEl) console.error('Map container element `#map` not found in DOM');
-const map = mapEl ? L.map('map').setView([52.2, 5.3], 7) : (null as unknown as L.Map);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
-
-try {
-  if (map && provinces && provinces.features && provinces.features.length) {
-    const provincesGeo = L.geoJSON(provinces as any);
-    const bounds = provincesGeo.getBounds();
-    if (bounds && typeof map.fitBounds === 'function') map.fitBounds(bounds, { padding: [20, 20] });
+async function loadProvinces(): Promise<FeatureCollection> {
+  // In dev, use Vite's ?raw import; in production, fetch from dist/geo/regions.geojson
+  if (import.meta.env && import.meta.env.DEV) {
+    const regionsGeoText = await import('./geo/regions.geojson?raw').then(m => m.default);
+    return JSON.parse(regionsGeoText) as FeatureCollection;
+  } else {
+    const url = `${window.location.pathname.replace(/\/[^/]*$/, '')}/geo/regions.geojson`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch regions.geojson');
+    return await res.json();
   }
-} catch (e) {
-  console.warn('Could not fit map to provinces bounds', e);
 }
 
-const regionsLayerGroup = L.layerGroup().addTo(map);
+async function main() {
+  provinces = await loadProvinces();
+  const mapEl = document.getElementById('map');
+  if (!mapEl) console.error('Map container element `#map` not found in DOM');
+  const map = mapEl ? L.map('map').setView([52.2, 5.3], 7) : (null as unknown as L.Map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
 
-const state: MapState = {
-  visibleTypes: new Set<string>(),
-  lastProvinceNextVacation: null,
-  lastProvinceVacations: null,
-  selectedDate: null,
-  provincesBounds: null,
-  lastProvinceLayerByKey: new Map<string, L.Layer>(),
-};
+  try {
+    if (map && provinces && provinces.features && provinces.features.length) {
+      const provincesGeo = L.geoJSON(provinces as any);
+      const bounds = provincesGeo.getBounds();
+      if (bounds && typeof map.fitBounds === 'function') map.fitBounds(bounds, { padding: [20, 20] });
+    }
+  } catch (e) {
+    console.warn('Could not fit map to provinces bounds', e);
+  }
 
-let legendControlInstance: L.Control | null = null;
-let sidebarInstance: L.Control | null = null;
-let debugControlInstance: L.Control | null = null;
+  const regionsLayerGroup = L.layerGroup().addTo(map);
 
-async function loadSchoolHolidays(): Promise<void> {
+  const state: MapState = {
+    visibleTypes: new Set<string>(),
+    lastProvinceNextVacation: null,
+    lastProvinceVacations: null,
+    selectedDate: null,
+    provincesBounds: null,
+    lastProvinceLayerByKey: new Map<string, L.Layer>(),
+  };
+
+  let legendControlInstance: L.Control | null = null;
+  let sidebarInstance: L.Control | null = null;
+  let debugControlInstance: L.Control | null = null;
+
+  async function loadSchoolHolidays(): Promise<void> {
   try {
     // Try configured URLs in order until we get JSON data.
     let data: any = null;
@@ -99,15 +122,15 @@ async function loadSchoolHolidays(): Promise<void> {
   } catch (err) {
     console.error('Error loading school holidays', err);
   }
-}
+  }
 
-function render() {
-  renderProvinceLayers(regionsLayerGroup, provinces as FeatureCollection, state, map);
-}
+  function render() {
+    renderProvinceLayers(regionsLayerGroup, provinces as FeatureCollection, state, map);
+  }
 
-loadSchoolHolidays();
+  await loadSchoolHolidays();
 
-function createSidebarControl() {
+  function createSidebarControl() {
   const control = (L as any).control({ position: 'topleft' });
   control.onAdd = function () {
     const div = L.DomUtil.create('div', 'province-sidebar p-3 bg-white rounded');
@@ -141,7 +164,7 @@ function createSidebarControl() {
 
     function updateSidebarList() {
       list.innerHTML = '';
-      const names = provinces.features.map((f: any) => ((f.properties && ((f.properties as any).name || (f.properties as any).provincie || (f.properties as any).provincenaam)) || '') as string).sort();
+      const names = provinces && provinces.features ? provinces.features.map((f: any) => ((f.properties && ((f.properties as any).name || (f.properties as any).provincie || (f.properties as any).provincenaam)) || '') as string).sort() : [];
       names.forEach(n => {
         const key = normalize(n);
         const item = document.createElement('div');
@@ -179,9 +202,9 @@ function createSidebarControl() {
     return div;
   };
   return control.addTo(map);
-}
+  }
 
-function createDebugControl() {
+  function createDebugControl() {
   const control = (L as any).control({ position: 'bottomleft' });
   control.onAdd = function () {
     const div = L.DomUtil.create('div', 'debug-panel p-2 bg-white rounded');
@@ -200,9 +223,9 @@ function createDebugControl() {
   };
   const inst = control.addTo(map);
   return control;
-}
+  }
 
-function updateDebug() {
+  function updateDebug() {
   try {
     const el = document.getElementById('debug-content');
     if (!el) return;
@@ -216,9 +239,13 @@ function updateDebug() {
   } catch (e) {
     // ignore
   }
-}
+  }
 
-function updateSidebarList() {
+  function updateSidebarList() {
   const sb = document.querySelector('.province-sidebar') as any;
   if (sb && typeof sb._updateSidebarList === 'function') sb._updateSidebarList();
+  }
+
 }
+
+main();
