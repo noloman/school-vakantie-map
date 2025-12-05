@@ -28,16 +28,20 @@ const API_URLS = [
   'https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json',
 ];
 async function loadProvinces(): Promise<FeatureCollection> {
-  // In dev, use Vite's ?raw import; in production, fetch from dist/geo/regions.geojson
+  // In dev, use Vite's ?raw import; in production, fetch from a URL built off BASE_URL.
   if (import.meta.env && import.meta.env.DEV) {
     const regionsGeoText = await import('./geo/regions.geojson?raw').then(m => m.default);
     return JSON.parse(regionsGeoText) as FeatureCollection;
-  } else {
-    const url = `${window.location.pathname.replace(/\/[^/]*$/, '')}/geo/regions.geojson`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Failed to fetch regions.geojson');
-    return await res.json();
   }
+
+  const base = (import.meta as any).env?.BASE_URL || '/';
+  const geoUrl = new URL('geo/regions.geojson', base).toString();
+  const res = await fetch(geoUrl);
+  if (!res.ok) {
+    console.error('Failed to fetch regions.geojson', res.status, res.statusText, 'url:', geoUrl);
+    throw new Error('Failed to fetch regions.geojson');
+  }
+  return await res.json();
 }
 
 async function main() {
@@ -90,7 +94,10 @@ async function main() {
         continue;
       }
     }
-    if (!data) return console.warn('No school holidays data returned from any configured source');
+    if (!data) {
+      console.error('No school holidays data returned from any configured source', API_URLS);
+      return;
+    }
     if (!Array.isArray(data) || data.length === 0) return console.warn('No school holidays data returned');
 
     const latest = (data as any[]).reduce((a, b) => new Date(a.lastmodified) > new Date(b.lastmodified) ? a : b);
