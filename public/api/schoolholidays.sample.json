@@ -1,0 +1,52 @@
+[
+  {
+    "lastmodified": "2024-08-01T00:00:00+02:00",
+    "content": [
+      {
+        "title": "Schoolvakanties 2024/2025",
+        "vacations": [
+          {
+            "type": "zomervakantie",
+            "regions": [
+              {
+                "region": "heel nederland",
+                "startdate": "2025-07-05",
+                "enddate": "2025-08-17"
+              }
+            ]
+          },
+          {
+            "type": "herfstvakantie",
+            "regions": [
+              {
+                "region": "noord",
+                "startdate": "2024-10-19",
+                "enddate": "2024-10-27"
+              },
+              {
+                "region": "midden",
+                "startdate": "2024-10-19",
+                "enddate": "2024-10-27"
+              },
+              {
+                "region": "zuid",
+                "startdate": "2024-10-26",
+                "enddate": "2024-11-03"
+              }
+            ]
+          },
+          {
+            "type": "kerstvakantie",
+            "regions": [
+              {
+                "region": "heel nederland",
+                "startdate": "2024-12-21",
+                "enddate": "2025-01-05"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

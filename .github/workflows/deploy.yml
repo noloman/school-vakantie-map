@@ -29,9 +29,17 @@ jobs:
           cache: 'npm'
 
       - name: Fetch school holidays data
+        env:
+          API_URL: https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json
         run: |
           mkdir -p public/api
-          curl -fsSL "https://opendata.rijksoverheid.nl/api/v1/infotypes/schoolholidays?output=json" -o public/api/schoolholidays.json || echo "{}" > public/api/schoolholidays.json
+          # Try to fetch live data; if it fails, fall back to the bundled sample.
+          if curl -fsSL "$API_URL" -o /tmp/schoolholidays.json; then
+            cp /tmp/schoolholidays.json public/api/schoolholidays.json
+          else
+            echo "Falling back to bundled sample data"
+            cp public/api/schoolholidays.sample.json public/api/schoolholidays.json
+          fi
 
       - name: Install dependencies
         run: npm ci
@@ -45,7 +53,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'dist'
+          path: dist
 
   deploy:
     environment:
