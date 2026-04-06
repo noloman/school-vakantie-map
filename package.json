@@ -16,7 +16,7 @@
     "postcss": "^8.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.2.2",
-    "vite": "^7.2.2"
+    "vite": "^7.3.2"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
